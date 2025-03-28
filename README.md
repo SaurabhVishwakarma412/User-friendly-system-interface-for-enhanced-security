@@ -24,3 +24,14 @@ pip install -r requirements.txt
 
 # Run application
 python main.py
+
+## All the modules requirement
+
+import os
+import platform
+import logging
+import subprocess
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+from tkinter import messagebox, scrolledtext
+
