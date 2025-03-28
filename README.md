@@ -1,11 +1,9 @@
 This is the OS project for a User-Friendly System Call Interface for Enhanced Security.
-# 🔒 Secure System Call Interface
+# Secure System Call Interface
 
 A role-based GUI wrapper for system commands with enhanced security logging.
 
-![Screenshot](assets/demo.png) *(Optional: Add UI screenshot)*
-
-## 🚀 Features
+## Features
 - **Role-Based Access Control (RBAC)**
   - Admin: Full command access
   - User: Restricted command set
@@ -16,7 +14,7 @@ A role-based GUI wrapper for system commands with enhanced security logging.
 - **Intuitive GUI**
   - ttkBootstrap-powered interface with dark/light modes
 
-## 📦 Installation
+## Installation
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/secure-system-call.git
