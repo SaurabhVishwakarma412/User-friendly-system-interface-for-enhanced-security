@@ -14,3 +14,8 @@ pytest==7.4.2
 # bcrypt==4.0.1
 # paramiko==3.3.1
 # psutil==5.9.5
+
+subprocess
+login
+subprocess 
+os platform
