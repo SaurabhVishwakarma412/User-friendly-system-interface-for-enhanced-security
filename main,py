@@ -1,3 +1,4 @@
+
 import os
 import platform
 import logging
@@ -38,7 +39,7 @@ ADMIN_COMMANDS = list(COMMAND_MAP.keys())
 USER_COMMANDS = ["pwd", "whoami", "ls", "mkdir", "touch", "cd", "cat", "getpid", "rmdir", "get_pids"]
 
 class SecureSystemGUI:
-    def _init_(self, root):
+    def __init__(self, root):
         self.root = root
         self.root.title("🔒 Secure System Dashboard")
         self.root.geometry("1024x720")
@@ -179,15 +180,26 @@ class SecureSystemGUI:
 
             # Handle 'cat'
             
-            # Handle 'cat'
             if cmd_name == "cat":
                 if ">>" in command:
-                    if len(command) < 4 or command[1] != ">>":
-                        self.output_box.insert(END, "❌ Incorrect usage. Use: cat >> filename text\n")
+                    if len(command) < 3 or command[1] != ">>":
+                        self.output_box.insert(END, "❌ Incorrect usage. Use: cat >> filename (then enter text, Ctrl+D to save)\n")
                         return
 
                     filename = command[2]
-                    text_to_append = " ".join(command[3:]) + "\n"
+
+                    self.output_box.insert(END, f"📩 Enter text to append to {filename}. Press Ctrl+D (Linux/macOS) or Ctrl+Z (Windows) and Enter to finish:\n")
+                    self.output_box.insert(END, ">>> ")
+
+                    # Collect user input for appending
+                    user_input = []
+                    while True:
+                        line = self.command_entry.get().strip()
+                        if line == chr(4) or line == chr(26):  # Ctrl+D (EOF) or Ctrl+Z (EOF)
+                            break
+                        user_input.append(line)
+
+                    text_to_append = "\n".join(user_input) + "\n"
 
                     try:
                         with open(filename, "a") as f:
@@ -212,6 +224,10 @@ class SecureSystemGUI:
                         self.output_box.insert(END, f"❌ Error reading file: {str(e)}\n")
                     return
 
+
+            
+            
+            
             
             if cmd_name == "rm":
                 if len(command) < 2:
@@ -246,7 +262,20 @@ class SecureSystemGUI:
 
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     root = ttk.Window(themename="darkly")
     app = SecureSystemGUI(root)
-    root.mainloop() -> this is os project new code
+    root.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
