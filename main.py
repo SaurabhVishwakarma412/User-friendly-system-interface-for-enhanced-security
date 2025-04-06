@@ -1,12 +1,10 @@
-#(WOrking Fine)---------------------------------------------------------------------------------------------------------------------------------------------
-
 import os
 import platform
 import logging
 import subprocess
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-from tkinter import messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext, Toplevel, Text, Label, Button
 
 # Configure logging
 logging.basicConfig(filename="system_call_log.txt", level=logging.INFO,
@@ -48,7 +46,6 @@ class SecureSystemGUI:
         self.create_login_ui()
 
     def create_login_ui(self):
-        """Creates the login UI"""
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -102,7 +99,7 @@ class SecureSystemGUI:
         sidebar.pack(side=LEFT, fill=Y)
 
         ttk.Label(sidebar, text="Commands", font=("Arial", 14, "bold"), foreground="white").pack(pady=10)
-        
+
         for cmd in (ADMIN_COMMANDS if self.role == "admin" else USER_COMMANDS):
             ttk.Button(sidebar, text=cmd, bootstyle="outline-light", command=lambda c=cmd: self.command_entry.insert(END, c)).pack(fill=X, pady=2)
 
@@ -119,15 +116,21 @@ class SecureSystemGUI:
 
         ttk.Button(content_frame, text="Execute", bootstyle=SUCCESS, command=self.execute_command).pack(pady=5)
 
-        # Output Box
-        self.output_box = scrolledtext.ScrolledText(content_frame, width=90, height=15, font=("Courier", 10), background="#282C34", foreground="white")
+        self.output_box = scrolledtext.ScrolledText(
+            content_frame,
+            width=90,
+            height=15,
+            font=("Courier", 10),
+            bg="#1e1e1e",
+            fg="white",
+            insertbackground="white"
+        )
         self.output_box.pack()
 
         # Status Bar
         self.status_bar = ttk.Label(self.root, text="Ready", font=("Arial", 10), bootstyle=SECONDARY, anchor=W)
         self.status_bar.pack(fill=X, side=BOTTOM)
 
-    
     def execute_command(self):
         command = self.command_entry.get().strip().split()
         if not command:
@@ -141,7 +144,6 @@ class SecureSystemGUI:
             return
 
         try:
-            # Handle 'cd'
             if cmd_name == "cd":
                 new_path = command[1] if len(command) > 1 else os.getcwd()
                 try:
@@ -151,7 +153,6 @@ class SecureSystemGUI:
                     self.output_box.insert(END, f"❌ Directory not found: {new_path}\n")
                 return
 
-            # Handle 'mkdir'
             if cmd_name == "mkdir":
                 if len(command) < 2:
                     self.output_box.insert(END, "❌ Please specify a directory name.\n")
@@ -160,7 +161,6 @@ class SecureSystemGUI:
                 self.output_box.insert(END, f"✅ Directory created: {command[1]}\n")
                 return
 
-            # Handle 'rmdir'
             if cmd_name == "rmdir":
                 if len(command) < 2:
                     self.output_box.insert(END, "❌ Please specify a directory name.\n")
@@ -169,7 +169,6 @@ class SecureSystemGUI:
                 self.output_box.insert(END, f"✅ Directory removed: {command[1]}\n")
                 return
 
-            # Handle 'touch'
             if cmd_name == "touch":
                 if len(command) < 2:
                     self.output_box.insert(END, "❌ Please specify a file name.\n")
@@ -179,104 +178,82 @@ class SecureSystemGUI:
                 self.output_box.insert(END, f"✅ File created: {command[1]}\n")
                 return
 
-            # Handle 'cat'
-            
             if cmd_name == "cat":
-                if ">>" in command:
-                    if len(command) < 3 or command[1] != ">>":
-                        self.output_box.insert(END, "❌ Incorrect usage. Use: cat >> filename (then enter text, Ctrl+D to save)\n")
-                        return
-
+                if len(command) >= 3 and command[1] == ">>":
                     filename = command[2]
 
-                    self.output_box.insert(END, f"📩 Enter text to append to {filename}. Press Ctrl+D (Linux/macOS) or Ctrl+Z (Windows) and Enter to finish:\n")
-                    self.output_box.insert(END, ">>> ")
+                    def save_text(event=None):  # accept optional event for key binding
+                        text_to_append = text_box.get("1.0", "end-1c")
+                        try:
+                            with open(filename, "a") as f:
+                                f.write(text_to_append + "\n")
+                            self.output_box.insert(END, f"✅ Text appended to {filename}\n")
+                            popup.destroy()
+                        except Exception as e:
+                            self.output_box.insert(END, f"❌ Error appending to file: {str(e)}\n")
+                            popup.destroy()
 
-                    # Collect user input for appending
-                    user_input = []
-                    while True:
-                        line = self.command_entry.get().strip()
-                        if line == chr(4) or line == chr(26):  # Ctrl+D (EOF) or Ctrl+Z (EOF)
-                            break
-                        user_input.append(line)
+                    popup = Toplevel(self.root)
+                    popup.title(f"Append to {filename}")
+                    popup.geometry("500x300")
+                    popup.grab_set()  # Make the popup modal
 
-                    text_to_append = "\n".join(user_input) + "\n"
+                    Label(popup, text=f"Enter text to append to {filename}").pack(pady=5)
 
-                    try:
-                        with open(filename, "a") as f:
-                            f.write(text_to_append)
-                        self.output_box.insert(END, f"✅ Text appended to {filename}\n")
-                    except Exception as e:
-                        self.output_box.insert(END, f"❌ Error appending to file: {str(e)}\n")
-                    return
-                else:
-                    if len(command) < 2:
-                        self.output_box.insert(END, "❌ Please specify a file name.\n")
-                        return
+                    text_box = Text(popup, wrap="word", font=("Courier", 10))
+                    text_box.pack(expand=True, fill=BOTH, padx=10, pady=5)
+                    text_box.focus_set()
 
-                    filename = command[1]
-                    try:
-                        with open(filename, "r") as f:
-                            content = f.read()
-                        self.output_box.insert(END, f"📄 Content of {filename}:\n{content}\n")
-                    except FileNotFoundError:
-                        self.output_box.insert(END, f"❌ File not found: {filename}\n")
-                    except Exception as e:
-                        self.output_box.insert(END, f"❌ Error reading file: {str(e)}\n")
+                    Button(popup, text="Save to File (Enter)", command=save_text).pack(pady=5)
+
+                    popup.bind("<Return>", save_text)  # Bind Enter key to save_text
+
                     return
 
 
-            
-            
-            
-            
-            if cmd_name == "rm":
-                if len(command) < 2:
-                    self.output_box.insert(END, "❌ Please specify a file to delete.\n")
-                    return
+            full_cmd = COMMAND_MAP.get(cmd_name, cmd_name)
+            if len(command) > 1:
+                full_cmd += " " + " ".join(command[1:])
 
-                filename = command[1]
-                try:
-                    if os.path.isfile(filename):
-                        os.remove(filename)
-                        self.output_box.insert(END, f"✅ File deleted: {filename}\n")
-                    elif os.path.isdir(filename):
-                        os.rmdir(filename)
-                        self.output_box.insert(END, f"✅ Directory deleted: {filename}\n")
-                    else:
-                        self.output_box.insert(END, f"❌ No such file or directory: {filename}\n")
-                except Exception as e:
-                    self.output_box.insert(END, f"❌ Error deleting file: {str(e)}\n")
-                return
+            result = subprocess.run(full_cmd, shell=True, text=True, capture_output=True)
+            if result.stdout:
+                self.output_box.insert(END, f"📤 Output:\n{result.stdout}\n")
+            if result.stderr:
+                self.output_box.insert(END, f"❌ Error:\n{result.stderr}\n")
 
-            
-            
-
-            # Execute command normally for others
-            full_command = COMMAND_MAP.get(cmd_name, "") + " " + " ".join(command[1:])
-            result = subprocess.run(full_command, shell=True, text=True, capture_output=True)
-            output = result.stdout if result.stdout else result.stderr
-            self.output_box.insert(END, output + "\n")
+            self.status_bar.config(text="Command executed successfully.")
 
         except Exception as e:
-            self.output_box.insert(END, f"❌ Error executing command: {str(e)}\n")
+            self.output_box.insert(END, f"❌ Exception: {str(e)}\n")
+            self.status_bar.config(text="Execution failed.")
+        
+        if cmd_name == "rm":
+            if len(command) < 2:
+                self.output_box.insert(END, "❌ Please specify a file to delete.\n")
+                return
+
+            filename = command[1]
+            try:
+                if os.path.isfile(filename):
+                    os.remove(filename)
+                    self.output_box.insert(END, f"✅ File deleted: {filename}\n")
+                elif os.path.isdir(filename):
+                    os.rmdir(filename)
+                    self.output_box.insert(END, f"✅ Directory deleted: {filename}\n")
+                else:
+                    # This will only be reached if the file doesn't exist *before* deletion
+                    self.output_box.insert(END, f"❌ No such file or directory: {filename}\n")
+            except Exception as e:
+                self.output_box.insert(END, f"❌ Error deleting: {str(e)}\n")
+
+            self.status_bar.config(text="Command executed.")
+            return
 
 
 
+
+# Launch the app
 if __name__ == "__main__":
-    root = ttk.Window(themename="darkly")
+    root = ttk.Window(themename="darkly")  # Dark theme
     app = SecureSystemGUI(root)
     root.mainloop()
-
-
-
-
-
-
-
-
-
-
-
-
-
