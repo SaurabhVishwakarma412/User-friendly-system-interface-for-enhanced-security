@@ -249,9 +249,6 @@ class SecureSystemGUI:
             self.status_bar.config(text="Command executed.")
             return
 
-
-
-
 # Launch the app
 if __name__ == "__main__":
     root = ttk.Window(themename="darkly")  # Dark theme
