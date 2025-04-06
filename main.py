@@ -65,7 +65,7 @@ class SecureSystemGUI:
 
         ttk.Button(login_frame, text="Login", bootstyle="primary", command=self.authenticate).pack(pady=5, fill=X)
         ttk.Button(login_frame, text="Signup", bootstyle="success", command=self.signup).pack(pady=5, fill=X)
-
+    #validate username and password
     def authenticate(self):
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
@@ -127,7 +127,7 @@ class SecureSystemGUI:
         self.status_bar = ttk.Label(self.root, text="Ready", font=("Arial", 10), bootstyle=SECONDARY, anchor=W)
         self.status_bar.pack(fill=X, side=BOTTOM)
 
-    
+    #command authentication
     def execute_command(self):
         command = self.command_entry.get().strip().split()
         if not command:
@@ -225,11 +225,7 @@ class SecureSystemGUI:
                         self.output_box.insert(END, f"❌ Error reading file: {str(e)}\n")
                     return
 
-
-            
-            
-            
-            
+            # Handle 'rm'
             if cmd_name == "rm":
                 if len(command) < 2:
                     self.output_box.insert(END, "❌ Please specify a file to delete.\n")
@@ -260,8 +256,6 @@ class SecureSystemGUI:
 
         except Exception as e:
             self.output_box.insert(END, f"❌ Error executing command: {str(e)}\n")
-
-
 
 if __name__ == "__main__":
     root = ttk.Window(themename="darkly")
